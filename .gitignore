@@ -1,0 +1,16 @@
+venv/
+env/
+.venv/
+data/raw/
+img/
+models/
+
+.cache/
+.ipynb_checkpoints/
+.DS_Store
+.vscode/
+.idea/
+*.swp
+.env
+*.yml
+
