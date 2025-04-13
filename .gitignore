@@ -2,6 +2,7 @@ venv/
 env/
 .venv/
 data/raw/
+data/messages/
 img/
 models/
 
