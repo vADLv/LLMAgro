@@ -8,6 +8,11 @@ import pytz
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from telegram.constants import ParseMode
+
+from llm import LLM
+from utils import md_to_df
+import prompts
 
 load_dotenv()
 
@@ -16,6 +21,8 @@ SAVE_FOLDER = "../data/messages"
 HAS_DIGITS_REGEX = re.compile(r'\d')
 COUNTER_FILE = os.path.join(SAVE_FOLDER, "message_counters.json")
 MOSCOW_TZ = pytz.timezone('Europe/Moscow')  # Московский часовой пояс
+LLM = LLM()
+
 
 # Глобальные переменные
 user_message_count = defaultdict(int)
@@ -98,19 +105,15 @@ def generate_filename(sender_info: dict, message_date: datetime) -> str:
     
     return f"{sender_name_clean}_{user_message_count[sender_info['id']]}_{date_str}.json"
 
-async def save_message_to_file(update: Update):
-    message = update.message
-    if message is None:
-        return
-
+async def save_message_to_file(message):
     # Пропускаем сообщения без цифр
     text = message.text or message.caption or ""
     if not HAS_DIGITS_REGEX.search(text):
-        return
+        return ''
 
     sender_info = extract_sender_info(message)
     if not sender_info:
-        return
+        return ''
 
     # Генерируем имя файла
     filename = generate_filename(sender_info, message.date)
@@ -136,9 +139,27 @@ async def save_message_to_file(update: Update):
     # Сохраняем в файл
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+    
+    return data
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await save_message_to_file(update)
+    message = update.message
+    if message is None:
+        return
+    
+    preprocessed_message = await save_message_to_file(message)
+    
+    if preprocessed_message:
+        params = {
+            "raw_message": preprocessed_message,
+        }
+
+        filled_prompt = prompts.AGRO_PROMPT.format(**params)
+        raw_table = await LLM.call_yandex_gpt(filled_prompt)
+
+        await update.message.reply_text(f"```json\n{md_to_df(raw_table).to_dict(orient='records')}\n```",
+                                        parse_mode=ParseMode.MARKDOWN_V2)
+
 
 def main() -> None:
     ensure_save_folder_exists()
