@@ -15,3 +15,5 @@ models/
 .env
 *.yml
 
+__pycache__/
+
