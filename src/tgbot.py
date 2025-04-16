@@ -11,7 +11,8 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filte
 from telegram.constants import ParseMode
 
 from llm import LLM
-from utils import md_to_df
+from utils import md_table_to_df
+from save_to_google import save_to_gsheet
 import prompts
 
 load_dotenv()
@@ -155,9 +156,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
 
         filled_prompt = prompts.AGRO_PROMPT.format(**params)
-        raw_table = await LLM.call_yandex_gpt(filled_prompt)
+        md_table = await LLM.call_yandex_gpt(filled_prompt)
+        df = md_table_to_df(md_table)
+        
+        report = save_to_gsheet(df)
 
-        await update.message.reply_text(f"```json\n{md_to_df(raw_table).to_dict(orient='records')}\n```",
+        if message.chat.type == "private" and report:
+            await update.message.reply_text(
+                f'Отчет <a href="{report[0]}">{report[1]}</a> сохранен',
+                parse_mode=ParseMode.HTML
+            )
+            await update.message.reply_text(f"```json\n{df.to_dict(orient='records')}\n```",
                                         parse_mode=ParseMode.MARKDOWN_V2)
 
 
