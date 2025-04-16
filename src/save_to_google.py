@@ -2,6 +2,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 from datetime import datetime
 import pytz
 import os
@@ -11,6 +12,7 @@ from utils import md_table_to_df
 # Файл для сервиcного аккаунта
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 SERVICE_ACCOUNT_FILE = f'{SRC_DIR}/progressagroproject-9dfb76fd1abc.json'
+FOLDER_ID = '1EEbdC6WDtSpy68pmNLHAeU4d7Ca01MdK'
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
@@ -18,10 +20,46 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
 # Аутентификация
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 client = gspread.authorize(creds)
+drive_service = build('drive', 'v3', credentials=creds)
+
+# Доступ к почте
+PERMISSION = {
+    'type': 'user',
+    'role': 'writer',
+    'emailAddress': 's.sobolefff@gmail.com'
+}
+
+def save_json_to_folder(file_path):
+    file_name = os.path.basename(file_path)
+    file_metadata = {
+        'name': file_name,
+        'parents': [FOLDER_ID],
+        'description': 'Сообщение с отчётом о проделанной работе.',
+        'appProperties': { # Обход фильтрации
+            'contentType': 'official_report', 
+            'isVerified': 'true'
+            }
+    }
+
+    media = MediaFileUpload(file_path,
+                            mimetype='application/json',
+                            resumable=True)
+    
+    file = drive_service.files().create(body=file_metadata,
+                                 media_body=media,
+                                 fields='id, webViewLink').execute()
+    
+    drive_service.permissions().create(
+        fileId=file.get('id'),
+        body=PERMISSION,
+        sendNotificationEmail=False
+    ).execute()
+    
+    return file.get('webViewLink')
 
 
 # TODO переписать под async (gspread_asyncio)
-def save_to_gsheet(df: pd.DataFrame) -> str:
+def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
     """Сохраняет DataFrame в Google Sheets с ежедневными файлами"""
     if df.empty:
         print("Нет данных для сохранения")
@@ -40,10 +78,12 @@ def save_to_gsheet(df: pd.DataFrame) -> str:
             is_new = False
         except gspread.SpreadsheetNotFound:
             spreadsheet = client.create(report_name)
+            drive_service.files().update(fileId=spreadsheet.id,
+                                         addParents=FOLDER_ID,
+                                         removeParents='root').execute()
             worksheet = spreadsheet.get_worksheet(0)
             print(f"Создан новый отчет: {report_name}")
             is_new = True
-        url = f"https://docs.google.com/spreadsheets/d/{spreadsheet.id}"
         
         # Подготовка данных
         df = df.fillna('')
@@ -63,28 +103,24 @@ def save_to_gsheet(df: pd.DataFrame) -> str:
         
         url = f"https://docs.google.com/spreadsheets/d/{spreadsheet.id}"
 
-        # Доступ к почте
-        drive_service = build('drive', 'v3', credentials=creds)
-
-        permission = {
-            'type': 'user',
-            'role': 'writer',
-            'emailAddress': 's.sobolefff@gmail.com'
-        }
-
+        # Выдача прав
         drive_service.permissions().create(
             fileId=spreadsheet.id,
-            body=permission,
+            body=PERMISSION,
             sendNotificationEmail=False
         ).execute()
 
+        # Запись сообщения
+        message_url = save_json_to_folder(message_file_path)
+
         print(f"Данные сохранены в {report_name}")
-        print(f"{url}")
+        print(f"Сылка на JSON-файл - {message_url}")
+        print(f"Сылка на таблицу - {url}")
         return [url, report_name]
         
     except Exception as e:
         print(f"Ошибка: {str(e)}")
-        return ""
+        return ''
     
 
 if __name__ == "__main__":
@@ -104,4 +140,3 @@ if __name__ == "__main__":
     df = md_table_to_df(data)
     print(df)
     print('--------------------------')
-    save_to_gsheet(df)
