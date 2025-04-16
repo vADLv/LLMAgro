@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "progressagroproject",
+  "private_key_id": "9dfb76fd1abcd07297a8686cd00a66a7a18cbbe0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC7WtTz3AQukTpS\nbWVh3wV05eYEbkVLPqe6Ra7/Q4hP9iJdarXZfJnlWf+fYmMviU9ssKC5LJwQ9zxs\nopXzBx4UtZgIEEypFs41QFyvGwoDUOeLP5fn6Oq2hIuACL2SQ6bBRGFoMx0mksLt\nCithfV3k8HjQ/Uexv6EjyhTdTjlW4CQQ19UpYjbK4NwLk4LSCrAmDi95eOkfTb6c\nn6pFf2g5HSA6yEPUVhKvc9P+i7jS4fLrtUBjG+qtlYsRnYmj31GP2bZFkw/nU+uo\nOLgT/pE/v55MyMff8rmV+Xe6v9EGaMTi+oEqQHTcJU2V66a9x9rTuoR3ZGSbapOT\nXGuz3z0lAgMBAAECggEARQyVZmiki+sPRRi3YCo7Txl5vBFN7YzicSbEd6SShPHQ\nOYCeE9E1wM76BGpU5syi3op8ObLks+YCuYD0ZbSuU/CXXwVu03Spu/uEDS8Ych9r\nrqjZ2elAM9NGvIG8KD9RonIKukX4TOKS/5ybX1s+cyVjSZbHSQ24nEGajfOJ82eW\n522urWoOsPd+i1jNXy59r40SB5m3vsfJcPTGo5ntqU2nXDAWGt9eOfrUaASV0Htr\nKJcYCHpdwfCjwXfYgEVZab//IAvPoBURbqjt/4qGIawX7S+hnNXgpI0Qtgpuckek\nLAZ8lWntbulMWx6w/3OZ0lWdkWPnA6RQSfs+p2IEAwKBgQDy50WsEL4QEsrFCBIi\nXjTdnBwVHZKKxPRzG2lNS+7tk91aZLvXE1FQSu25LvRgqC+0/QdpcCz8gb/Tg2vK\n32fnwe5hD2AD1uQoh7XBg4zSZq5rMYANAv37sTqwpVmIbNRAkxmlcd3lTJaxwDE/\n9cD9gbh9Sl3IZNxs3dcK+vj31wKBgQDFdNaEUdywmYGt0k6YYKyGeb4b++4BtqS8\nQ3zMCVhrOMAXeGnO9VRjPivUenYKCVQZ6Brmmk0gGWudaCi/P5sWUOKgkGFxICnL\nJzo4q3SQHuVAFlV0vcTYff9b8Zb4PKthDvKsgNjFjZwWcY1lvGCqemwPa/ey11uk\nms5hp1MjYwKBgQDAnZaJIGmnE0/JuGGw8SVYyk8Wi3HGKvJxSL5S9jDMImH4KUMv\nBPmJAzHJlCtjblsOWUuEV9jEjxsPXfqfUFLz27vtKaUIxmH8pckCYA/OVHBhPkp9\nhu7ipKKWqzf5T9tsLXm70TSVfQtOfspPHtDf9frXF56QpzKH/c5lvaip1wKBgQCe\n50D/aXXF9TNkNDwl6p7M9cplcOAAJwD5tQIInXi3iQslmDTmZY5M86qIKyk1OH6i\n/qQvcnug2nQ9T6aDCmf/lIZdGvQf+vdHU0FKe8ipdwOdCJwq/9EbPIK1dn29Ne3h\nhQsMggBxM14qvaVB+1B7wVuXKZdEKIXKuP5fni2M6wKBgQDTRA7khe0i9TQYuiAb\nFl4MGRnGt1RIWqbZJYeA7JPxBI2x9Hv+vYjbcVhLmQmoD9Xh6mny3VrRpyv5EwIw\ncv0T27ymkk/s6KEVJjh0UKj8261rmgfMZZDI4ck6MlkcyZkMeUCJPZVjruf9KBps\nqqhxzXdaVxb3QWLm1wmRxszS5A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "progressagro@progressagroproject.iam.gserviceaccount.com",
+  "client_id": "116662778604418089168",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/progressagro%40progressagroproject.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

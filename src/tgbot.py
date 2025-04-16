@@ -17,7 +17,7 @@ import prompts
 load_dotenv()
 
 # Константы
-SAVE_FOLDER = "../data/messages"
+SAVE_FOLDER = "./data/messages"
 HAS_DIGITS_REGEX = re.compile(r'\d')
 COUNTER_FILE = os.path.join(SAVE_FOLDER, "message_counters.json")
 MOSCOW_TZ = pytz.timezone('Europe/Moscow')  # Московский часовой пояс
