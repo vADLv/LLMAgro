@@ -159,7 +159,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         md_table = await LLM.call_yandex_gpt(filled_prompt)
         df = md_table_to_df(md_table)
         
-        report = save_to_gsheet(df, json_file)
+        report = await save_to_gsheet(df, json_file)
 
         if message.chat.type == "private" and report:
             await update.message.reply_text(
