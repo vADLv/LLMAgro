@@ -3,6 +3,7 @@ env/
 .venv/
 data/raw/
 data/messages/
+src/data/messages
 img/
 models/
 
