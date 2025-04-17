@@ -141,14 +141,14 @@ async def save_message_to_file(message):
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     
-    return data
+    return data, filepath
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     if message is None:
         return
     
-    preprocessed_message = await save_message_to_file(message)
+    preprocessed_message, json_file = await save_message_to_file(message)
     
     if preprocessed_message:
         params = {
@@ -159,7 +159,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         md_table = await LLM.call_yandex_gpt(filled_prompt)
         df = md_table_to_df(md_table)
         
-        report = save_to_gsheet(df)
+        report = await save_to_gsheet(df, json_file)
 
         if message.chat.type == "private" and report:
             await update.message.reply_text(
