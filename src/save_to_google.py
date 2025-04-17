@@ -38,6 +38,40 @@ def get_creds():
 drive_service = build('drive', 'v3', credentials=get_creds())
 agcm = gspread_asyncio.AsyncioGspreadClientManager(get_creds)
 
+async def apply_conditional_formatting(report_name):
+    """Условное форматирование"""
+    client = await agcm.authorize()
+    spreadsheet = await client.open(report_name)
+    worksheet = await spreadsheet.get_worksheet(0)
+    # Формируем правило условного форматирования
+    request = {
+        "requests": [{
+            "addConditionalFormatRule": {
+                "rule": {
+                    "ranges": [{
+                        "sheetId": worksheet.id,
+                        "startRowIndex": 1,  # Строки 2-1000
+                        "endRowIndex": 1000,
+                        "startColumnIndex": 0,  # Колонки A-Z
+                        "endColumnIndex": 26
+                    }],
+                    "booleanRule": {
+                        "condition": {
+                            "type": "CUSTOM_FORMULA",
+                            "values": [{"userEnteredValue": "=AND($I2<8, $I2<>\"\")"}]
+                        },
+                        "format": {
+                            "backgroundColor": {"red": 0.99, "green": 0.98, "blue": 0.8}  # Желтый
+                        }
+                    }
+                },
+                "index": 0
+            }
+        }]
+    }
+    
+    await spreadsheet.batch_update(request)
+
 async def save_json_to_folder(file_path):
     """Сохранение JSON-файла в папку"""
     # НазваниЕ файла
@@ -126,6 +160,7 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
             )
             
             worksheet = await spreadsheet.get_worksheet(0)
+            await apply_conditional_formatting(report_name)
             print(f"Создан новый отчет: {report_name}")
 
         # Подготовка данных
