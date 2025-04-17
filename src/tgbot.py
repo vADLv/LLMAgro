@@ -72,16 +72,13 @@ def check_date_change():
         user_message_count = defaultdict(int)
         save_counters()
 
-def extract_sender_info(message) -> dict:
+def extract_sender_info(user) -> dict:
     """Извлекает информацию об отправителе."""
-    if not message.from_user:
-        return None
-    
     return {
-        "id": message.from_user.id,
-        "first_name": message.from_user.first_name,
-        "last_name": message.from_user.last_name,
-        "username": message.from_user.username
+        "id": getattr(user, 'id', 0),  # 0 или другое значение по умолчанию
+        "first_name": getattr(user, 'first_name', ''),
+        "last_name": getattr(user, 'last_name', ''),
+        "username": getattr(user, 'username', '')
     }
 
 def generate_filename(sender_info: dict, message_date: datetime) -> str:
@@ -106,17 +103,24 @@ def generate_filename(sender_info: dict, message_date: datetime) -> str:
     
     return f"{sender_name_clean}_{user_message_count[sender_info['id']]}_{date_str}.json"
 
+
 async def save_message_to_file(message):
     # Пропускаем сообщения без цифр
     text = message.text or message.caption or ""
     if not HAS_DIGITS_REGEX.search(text):
-        return ''
+        return '', ''
 
     sender_info = extract_sender_info(message)
     if not sender_info:
-        return ''
+        return '', ''
 
+    if message.forward_origin:  # Переслано от пользователя
+        user = message.forward_origin.sender_user
+    else:  # Обычное сообщение
+        user = message.from_user
+    
     # Генерируем имя файла
+    sender_info = extract_sender_info(user)
     filename = generate_filename(sender_info, message.date)
     filepath = os.path.join(SAVE_FOLDER, filename)
 
@@ -157,17 +161,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         filled_prompt = prompts.AGRO_PROMPT.format(**params)
         md_table = await LLM.call_yandex_gpt(filled_prompt)
-        df = md_table_to_df(md_table)
         
-        report = await save_to_gsheet(df, json_file)
+        if md_table != "-1":
+        
+            df = md_table_to_df(md_table)
 
-        if message.chat.type == "private" and report:
-            await update.message.reply_text(
-                f'Отчет <a href="{report[0]}">{report[1]}</a> сохранен',
-                parse_mode=ParseMode.HTML
-            )
-            await update.message.reply_text(f"```json\n{df.to_dict(orient='records')}\n```",
-                                        parse_mode=ParseMode.MARKDOWN_V2)
+            report = await save_to_gsheet(df, json_file)
+
+            if message.chat.type == "private" and report:
+                await update.message.reply_text(
+                    f'Отчет <a href="{report[0]}">{report[1]}</a> сохранен',
+                    parse_mode=ParseMode.HTML
+                )
+                await update.message.reply_text(f"```json\n{df.to_dict(orient='records')}\n```",
+                                            parse_mode=ParseMode.MARKDOWN_V2)
 
 
 def main() -> None:
@@ -178,7 +185,12 @@ def main() -> None:
     if not bot_token:
         raise ValueError("TG_TOKEN не найден в переменных окружения!")
     
-    app = ApplicationBuilder().token(bot_token).build()
+    app = ApplicationBuilder().token(bot_token) \
+    .read_timeout(30) \
+    .write_timeout(30) \
+    .connect_timeout(30) \
+    .pool_timeout(30) \
+    .build()
     app.add_handler(MessageHandler(filters.ALL, handle_message))
     
     print("Бот запущен...")

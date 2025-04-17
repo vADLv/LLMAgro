@@ -21,7 +21,7 @@ def md_table_to_df(md_table: str) -> pd.DataFrame:
     df = pd.DataFrame(data, columns=headers).dropna(how='all')
     
     # Обработка числовых колонок
-    numeric_cols = ['За день, га', 'С начала операции, га', 'Вал за день, ц', 'Вал с начала, ц']
+    numeric_cols = ['Уверенность распознавания', 'За день, га', 'С начала операции, га', 'Вал за день, ц', 'Вал с начала, ц']
     for col in numeric_cols:
         if col in df.columns:
             # Сначала заменяем None на NaN, затем обрабатываем строки
@@ -35,4 +35,7 @@ def md_table_to_df(md_table: str) -> pd.DataFrame:
         df['Дата'] = pd.to_datetime(df['Дата'],dayfirst=False, errors='coerce')
         df['Дата'] = df['Дата'].fillna(pd.to_datetime(datetime.now().date()))
     
+    # Уверенность переносим в конец
+    col_a = df.pop('Уверенность распознавания')
+    df['Уверенность распознавания'] = col_a
     return df
