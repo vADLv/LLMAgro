@@ -36,6 +36,7 @@ def get_creds():
     )
 
 drive_service = build('drive', 'v3', credentials=get_creds())
+agcm = gspread_asyncio.AsyncioGspreadClientManager(get_creds)
 
 async def save_json_to_folder(file_path):
     """Сохранение JSON-файла в папку"""
@@ -82,9 +83,7 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
         return ""
 
     try:
-        agcm = gspread_asyncio.AsyncioGspreadClientManager(get_creds)
         client = await agcm.authorize()
-
         # Создание имени файла
         msk_tz = pytz.timezone('Europe/Moscow')
         today_str = datetime.now(msk_tz).strftime('%d.%m.%y')
@@ -95,18 +94,39 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
 
         # Поиск или создание таблицы
         try:
+            is_new = False
             spreadsheet = await client.open(report_name)
             worksheet = await spreadsheet.get_worksheet(0)
-            is_new = False
+            
+            # Дополнительная проверка, что файл не в корзине
+            file_metadata = await asyncio.to_thread(
+                lambda: drive_service.files().get(
+                    fileId=spreadsheet.id,
+                    fields='parents'
+                ).execute()
+            )
+            
+            if FOLDER_ID not in file_metadata['parents']:
+                await asyncio.to_thread(
+                    lambda: drive_service.files().delete(fileId=spreadsheet.id).execute()
+                )
+                # Если файл уже не в папке (удален или перемещен) - удаляем полностью и создаем новый
+                raise Exception("Файл не найден")
 
-        except gspread_asyncio.SpreadsheetNotFound:
+        except:
+            is_new = True
             spreadsheet = await client.create(report_name)
-            await drive_service.files().update(fileId=spreadsheet.id,
-                                         addParents=FOLDER_ID,
-                                         removeParents='root').execute()
+
+            await asyncio.to_thread(
+                lambda: drive_service.files().update(
+                    fileId=spreadsheet.id,
+                    addParents=FOLDER_ID,
+                    removeParents="root"
+                ).execute()
+            )
+            
             worksheet = await spreadsheet.get_worksheet(0)
             print(f"Создан новый отчет: {report_name}")
-            is_new = True
 
         # Подготовка данных
         df = df.fillna('')
