@@ -17,7 +17,7 @@ from utils import md_table_to_df
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 # Файл для сервиcного аккаунта
 SERVICE_ACCOUNT_FILE = f'{SRC_DIR}/progressagroproject-9dfb76fd1abc.json'
-FOLDER_ID = '1EEbdC6WDtSpy68pmNLHAeU4d7Ca01MdK'
+FOLDER_ID = '1-HxY9mFeOLLZ36h6t30nPBXmbOhNwcza'
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
