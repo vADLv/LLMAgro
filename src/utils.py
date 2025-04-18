@@ -2,10 +2,10 @@ import pandas as pd
 from datetime import datetime
 
 def md_table_to_df(md_table: str) -> pd.DataFrame:
+    """Парсит текстовую таблицу работ в df"""
     if md_table ==-1:
         return pd.DataFrame()
-    
-    """Парсит текстовую таблицу работ в df"""
+
     lines = [line.strip() for line in md_table.split('\n') 
              if line.strip() and '---' not in line 
              and not line.startswith('Итоговая таблица') 
