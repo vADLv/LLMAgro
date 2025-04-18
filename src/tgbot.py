@@ -173,8 +173,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f'Отчет <a href="{report[0]}">{report[1]}</a> сохранен',
                     parse_mode=ParseMode.HTML
                 )
-                await update.message.reply_text(f"```json\n{df.to_dict(orient='records')}\n```",
-                                            parse_mode=ParseMode.MARKDOWN_V2)
+                # await update.message.reply_text(f"```json\n{df.to_dict(orient='records')}\n```",
+                #                             parse_mode=ParseMode.MARKDOWN_V2)
 
 
 def main() -> None:
