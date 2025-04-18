@@ -34,6 +34,9 @@ def md_table_to_df(md_table: str) -> pd.DataFrame:
     if 'Дата' in df.columns:
         df['Дата'] = pd.to_datetime(df['Дата'],dayfirst=False, errors='coerce')
         df['Дата'] = df['Дата'].fillna(pd.to_datetime(datetime.now().date()))
+
+    if pd.to_datetime(df['Дата'].values[0]) > datetime.now():
+        df['Дата'] = pd.to_datetime(df['Дата']) - pd.DateOffset(years=1)
     
     # Уверенность переносим в конец
     col_a = df.pop('Уверенность распознавания')

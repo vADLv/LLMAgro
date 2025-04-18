@@ -13,8 +13,9 @@ import os
 from utils import md_table_to_df
 
 
-# Файл для сервиcного аккаунта
+# Константы
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+# Файл для сервиcного аккаунта
 SERVICE_ACCOUNT_FILE = f'{SRC_DIR}/progressagroproject-9dfb76fd1abc.json'
 FOLDER_ID = '1EEbdC6WDtSpy68pmNLHAeU4d7Ca01MdK'
 
@@ -28,15 +29,17 @@ PERMISSION = {
     'emailAddress': 's.sobolefff@gmail.com'
 }
 
-# Аутентификация
+# Получение полномочий 
 def get_creds():
     return Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE,
         scopes=SCOPES
     )
 
+# Создане клиента Google Drive API
 drive_service = build('drive', 'v3', credentials=get_creds())
 agcm = gspread_asyncio.AsyncioGspreadClientManager(get_creds)
+
 
 async def apply_conditional_formatting(report_name):
     """Условное форматирование"""
@@ -72,9 +75,10 @@ async def apply_conditional_formatting(report_name):
     
     await spreadsheet.batch_update(request)
 
+
 async def save_json_to_folder(file_path):
     """Сохранение JSON-файла в папку"""
-    # НазваниЕ файла
+    # Названиe файла
     file_name = os.path.basename(file_path)
     # Метаданные
     file_metadata = {
@@ -98,18 +102,10 @@ async def save_json_to_folder(file_path):
             media_body=media,
             fields='id, webViewLink'
         ).execute())
-    # Права на файл
-    await asyncio.to_thread(
-        lambda: drive_service.permissions().create(
-            fileId=file.get('id'),
-            body=PERMISSION,
-            sendNotificationEmail=False
-        ).execute())
     
     return file.get('webViewLink')
 
 
-# TODO переписать под async (gspread_asyncio)
 async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
     """Сохраняет DataFrame в Google Sheets с ежедневными файлами"""
     if df.empty:
@@ -119,12 +115,14 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
     try:
         client = await agcm.authorize()
         # Создание имени файла
-        msk_tz = pytz.timezone('Europe/Moscow')
-        today_str = datetime.now(msk_tz).strftime('%d.%m.%y')
-        report_name = f"Отчет_{today_str}"
+        df['Дата'] = df['Дата'].dt.strftime('%d-%m-%Y')
+        report_name = f"{df['Дата'].values[0]}_ЗИП файл"
 
         # Запись сообщения
         file_url = await save_json_to_folder(message_file_path)
+
+        # Добавление поля с кликабельной ссылкой
+        df["Ссылка"] = f'=HYPERLINK("{file_url}", "Сообщение")'
 
         # Поиск или создание таблицы
         try:
@@ -166,11 +164,13 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
         # Подготовка данных
         df = df.fillna('')
         
-        df['Дата'] = df['Дата'].dt.strftime('%Y-%m-%d')
+        
         # Формируем данные для загрузки
         if is_new or not (await worksheet.get_all_values()):
-            data_to_upload = [df.columns.tolist()]  # Список заголовков
-            data_to_upload.extend(df.values.tolist())  # Добавляем строки данных
+            # Список заголовков
+            data_to_upload = [df.columns.tolist()]
+            # Добавляем строки данных
+            data_to_upload.extend(df.values.tolist())
             await worksheet.update(data_to_upload, value_input_option='USER_ENTERED')
             await worksheet.format("A1:Z1", {"textFormat": {"bold": True}})
 
@@ -181,14 +181,6 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
         await worksheet.columns_auto_resize(0, len(df.columns)-1)
         
         url = f"https://docs.google.com/spreadsheets/d/{spreadsheet.id}"
-
-        # Выдача прав
-        await asyncio.to_thread(
-            lambda: drive_service.permissions().create(
-                fileId=spreadsheet.id,
-                body=PERMISSION,
-                sendNotificationEmail=False
-            ).execute())
 
         print(f"Данные сохранены в {report_name}")
         print(f"Сылка на JSON-файл - {file_url}")
@@ -212,8 +204,5 @@ if __name__ == "__main__":
 | 04/13/2025 | Восход         | Боронование довсходовое   | Подсолнечник товарный      | 524         |                        |                |                  |
 
 Количество найденных операций: 5."""
-    
-    
-    df = md_table_to_df(data)
-    print(df)
+
     print('--------------------------')
