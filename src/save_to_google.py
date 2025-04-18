@@ -115,9 +115,8 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
     try:
         client = await agcm.authorize()
         # Создание имени файла
-        msk_tz = pytz.timezone('Europe/Moscow')
-        today_str = datetime.now(msk_tz).strftime('%d.%m.%y')
-        report_name = f"{today_str}_ЗИП файл"
+        df['Дата'] = df['Дата'].dt.strftime('%d-%m-%Y')
+        report_name = f"{df['Дата'].values[0]}_ЗИП файл"
 
         # Запись сообщения
         file_url = await save_json_to_folder(message_file_path)
@@ -165,7 +164,7 @@ async def save_to_gsheet(df: pd.DataFrame, message_file_path) -> list:
         # Подготовка данных
         df = df.fillna('')
         
-        df['Дата'] = df['Дата'].dt.strftime('%Y-%m-%d')
+        
         # Формируем данные для загрузки
         if is_new or not (await worksheet.get_all_values()):
             # Список заголовков
