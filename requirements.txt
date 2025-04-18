@@ -1,2 +1,10 @@
 loguru
+gspread
 gspread_asyncio
+aiohttp
+pandas
+google-auth
+pytz
+python-telegram-bot
+python-dotenv
+asyncio
