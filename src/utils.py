@@ -24,10 +24,10 @@ def md_table_to_df(md_table: str) -> pd.DataFrame:
     numeric_cols = ['Уверенность распознавания', 'За день, га', 'С начала операции, га', 'Вал за день, ц', 'Вал с начала, ц']
     for col in numeric_cols:
         if col in df.columns:
-            # Сначала заменяем None на NaN, затем обрабатываем строки
+            # Обрабатываем строки, при неудаче возвращаем None
             try:
                 df[col] = pd.to_numeric(
-                    df[col].replace([None, ''], pd.NA).str.replace(" ", "").replace(',', '.'), 
+                    df[col].str.replace(" ", "").str.replace(',', '.'), 
                     errors='coerce'
                 )
             except:
