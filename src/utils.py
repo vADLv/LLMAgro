@@ -25,10 +25,15 @@ def md_table_to_df(md_table: str) -> pd.DataFrame:
     for col in numeric_cols:
         if col in df.columns:
             # Сначала заменяем None на NaN, затем обрабатываем строки
-            df[col] = pd.to_numeric(
-                df[col].replace([None, ''], pd.NA).str.replace(',', '.'), 
-                errors='coerce'
-            )
+            try:
+                df[col] = pd.to_numeric(
+                    df[col].replace([None, ''], pd.NA).str.replace(" ", "").replace(',', '.'), 
+                    errors='coerce'
+                )
+            except:
+                df[col] = None
+        else:
+            df[col] = None
     
     # Обработка дат
     if 'Дата' in df.columns:
